@@ -218,6 +218,15 @@ int main(void) {
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
+    // world space positions of our cubes
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f)
+    };
     // configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
@@ -255,8 +264,6 @@ int main(void) {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        i++;
-
         // input
         // -----
         processInput(window);
@@ -284,9 +291,10 @@ int main(void) {
 			radius = 90.0f * scale;
 			planetX = radius * sin(PI * 2 * angle / 360);
 			planetZ = radius * cos(PI * 2 * angle / 360);
+            i++;
         } 
         model = glm::translate(model, glm::vec3(planetX, 0.0f, planetZ)); 
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
+        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	
         // render planet 
         planetShader.setMat4("model", model);
         planetModel.Draw(planetShader);
@@ -312,17 +320,29 @@ int main(void) {
         cubeShader.setMat4("projection", projection);
         cubeShader.setMat4("view", view);
 
-        // world transformation
-        model = glm::mat4(1.0f);
-        cubeShader.setMat4("model", model);
-
         // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
         // render cube
         glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int k = 0; k < 6; k++) {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[k]);
+            // if (movement) {
+            //     angle = 0.080f * i * speed;
+            //     radius = radius / 7;
+            //     cubeY = radius * sin(PI * 2 * angle / 360);
+            //     cubeZ = radius * cos(PI * 2 * angle / 360);
+            // }
+            // model = glm::translate(model, glm::vec3(0.0, cubeY, cubeZ));
+            // model = glm::translate(model, glm::vec3(planetX, planetZ, 0.0f));
+            // model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
+            cubeShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
