@@ -181,7 +181,7 @@ int main(void) {
         -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
-    // first, configure the cube's VAO (and VBO)
+    // configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &VBO);
@@ -221,56 +221,19 @@ int main(void) {
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // enable cube shader
-		cubeShader.use();
-		cubeShader.setVec3("light.position", lightPos);
-        cubeShader.setVec3("viewPos", camera.Position);
-
-        //light properties
-        cubeShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        cubeShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        cubeShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-        cubeShader.setFloat("light.constant", 1.0f);
-        cubeShader.setFloat("light.linear", 0.05f);
-        cubeShader.setFloat("light.quadratic", 0.012f);
-
-        //material properties
-        cubeShader.setFloat("material.shininess", 1.0f);
-
-
-         // view/projection transformations
-        glm::mat4 cprojection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 cview = camera.GetViewMatrix();
-        cubeShader.setMat4("projection", cprojection);
-        cubeShader.setMat4("view", cview);
-
-        // world transformation
-        glm::mat4 cmodel = glm::mat4(1.0f);
-        float lightX = 2.0f * sin(glfwGetTime());
-        float lightY = -0.3f;
-        float lightZ = 1.5f * cos(glfwGetTime());
-        glm::vec3 cubePos = glm::vec3(lightX, lightY, lightZ);
-        cmodel = glm::translate(cmodel, cubePos);
-        cubeShader.setMat4("model", cmodel);
-
-         // render the cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
+        GLfloat angle, radius, planetX, planetZ, cubeY, cubeZ;
 
         // enable planet shader before setting uniforms
         planetShader.use();
 
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        planetShader.setMat4("projection", projection);
-        planetShader.setMat4("view", view);
+        // planet view/projection transformations
+        glm::mat4 planet_projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 200.0f);
+        glm::mat4 planet_view = camera.GetViewMatrix();
+        planetShader.setMat4("projection", planet_projection);
+        planetShader.setMat4("view", planet_view);
 
-        // render the loaded model
+        // planet model movement
         glm::mat4 model = glm::mat4(1.0f);
-        GLfloat angle, radius, planetX, planetZ;
         if (movement) {
             angle = 0.006f * i  * speed;
 			radius = 90.0f * scale;
@@ -279,18 +242,49 @@ int main(void) {
         } 
         model = glm::translate(model, glm::vec3(planetX, 0.0f, planetZ)); 
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	
-        
+        // render planet 
         planetShader.setMat4("model", model);
         planetModel.Draw(planetShader);
 
+
         // enable cube shader
-        cubeShader.use();
+		cubeShader.use();
+        cubeShader.setVec3("objectColor", 1.0f, 1.0f, 1.0f);
+        cubeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        cubeShader.setVec3("lightPos", glm::vec3(planetX, 0.0f, planetZ));
+        cubeShader.setVec3("viewPos", camera.Position);
+
+        // cube view/projection transformations
+        glm::mat4 cube_projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 cube_view = camera.GetViewMatrix();
+        cubeShader.setMat4("projection", cube_projection);
+        cubeShader.setMat4("view", cube_view);
+
+        // cube transformations
+        glm::mat4 cube_model = glm::mat4(1.0f);
+        // if (movement) {
+		// 	angle = 0.0090f * i * speed;
+		// 	radius = radius / 7;
+		// 	cubeY = radius * sin(PI * 2 * angle / 360);
+		// 	cubeZ = radius * cos(PI * 2 * angle / 360);
+		// }
+		// cube_model = glm::translate(cube_model, glm::vec3(0.0f, cubeY, cubeZ));
+		// cube_model = glm::translate(cube_model, glm::vec3(planetX, planetZ, planetZ));
+        cubeShader.setMat4("model", cube_model);
+
+        // render cube
+        glBindVertexArray(cubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
-    }
+    }   
+    // optional: de-allocate all resources once they've outlived their purpose:
+    // ------------------------------------------------------------------------
+    glDeleteVertexArrays(1, &cubeVAO);
+    glDeleteBuffers(1, &VBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
