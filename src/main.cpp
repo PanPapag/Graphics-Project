@@ -12,8 +12,8 @@
 #include <iostream>
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1200;
+const unsigned int SCR_HEIGHT = 800;
 const double PI = 3.141592653589793238463;
 
 // camera
@@ -55,6 +55,11 @@ void processInput(GLFWwindow *window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    // movement spped
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		speed += 0.5f;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		speed -= 0.5f;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -345,8 +350,8 @@ int main(void) {
                 cubeY = radius * sin(PI * 2 * angle / 360);
                 cubeZ = radius * cos(PI * 2 * angle / 360);
             }
-            // model = glm::translate(model, glm::vec3(0.0, cubeY, cubeZ));
-            // model = glm::translate(model, glm::vec3(planetX, planetZ, 0.0f));
+            model = glm::translate(model, glm::vec3(cubeY, planetX, cubeZ));
+            model = glm::translate(model, glm::vec3(planetX, cubeY, planetZ));
             model = glm::rotate(model, angle, cubeRotations[k]);
             cubeShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
