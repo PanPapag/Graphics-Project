@@ -17,7 +17,7 @@ const unsigned int SCR_HEIGHT = 600;
 const double PI = 3.141592653589793238463;
 
 // camera
-Camera camera(glm::vec3(0.0f, 1.0f, 15.0f));
+Camera camera(glm::vec3(0.0f, 2.0f, 20.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -220,12 +220,21 @@ int main(void) {
     };
     // world space positions of our cubes
     glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f),
-        glm::vec3(-1.5f, -2.2f, -2.5f),
-        glm::vec3(-3.8f, -2.0f, -12.3f),
-        glm::vec3( 2.4f, -0.4f, -3.5f),
-        glm::vec3(-1.7f,  3.0f, -7.5f)
+        glm::vec3( -5.0f, 0.0f, -2.5f),
+        glm::vec3( 0.0f,  0.0f, -2.5f),
+        glm::vec3( 5.0f,  0.0f, -2.5f),
+        glm::vec3( -2.5f, 2.5f,  0.0f),
+        glm::vec3( 2.5f,  2.5f,  0.0f),
+        glm::vec3( 0.0f,  5.0f,  2.5f)
+    };
+    // cubes rotations 
+    glm::vec3 cubeRotations[] = {
+        glm::vec3( 1.0f,  0.0f,  0.0f),
+        glm::vec3( 0.0f,  1.0f,  0.0f),
+        glm::vec3( 0.0f,  0.0f,  1.0f),
+        glm::vec3( 0.5f,  0.5f,  0.0f),
+        glm::vec3( 0.0f,  0.5f,  0.5f),
+        glm::vec3( 0.5f,  0.5f,  0.5f)
     };
     // configure the cube's VAO (and VBO)
     unsigned int VBO, cubeVAO;
@@ -293,7 +302,7 @@ int main(void) {
 			planetZ = radius * cos(PI * 2 * angle / 360);
             i++;
         } 
-        model = glm::translate(model, glm::vec3(planetX, 0.0f, planetZ)); 
+        model = glm::translate(model, glm::vec3(planetX, 2.0f, planetZ)); 
         model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));	
         // render planet 
         planetShader.setMat4("model", model);
@@ -302,7 +311,7 @@ int main(void) {
 
         // be sure to activate shader when setting uniforms/drawing objects
         cubeShader.use();
-        cubeShader.setVec3("light.position", glm::vec3(planetX, 0.0f, planetZ));
+        cubeShader.setVec3("light.position", glm::vec3(planetX, 2.0f, planetZ));
         cubeShader.setVec3("viewPos", camera.Position);
 
         // light properties
@@ -330,15 +339,15 @@ int main(void) {
             // calculate the model matrix for each object and pass it to shader before drawing
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[k]);
-            // if (movement) {
-            //     angle = 0.080f * i * speed;
-            //     radius = radius / 7;
-            //     cubeY = radius * sin(PI * 2 * angle / 360);
-            //     cubeZ = radius * cos(PI * 2 * angle / 360);
-            // }
+            if (movement) {
+                angle = 0.00080f * i * speed;
+                radius = radius / 7;
+                cubeY = radius * sin(PI * 2 * angle / 360);
+                cubeZ = radius * cos(PI * 2 * angle / 360);
+            }
             // model = glm::translate(model, glm::vec3(0.0, cubeY, cubeZ));
             // model = glm::translate(model, glm::vec3(planetX, planetZ, 0.0f));
-            // model = glm::rotate(model, angle, glm::vec3(0.5f, 1.0f, 0.0f));
+            model = glm::rotate(model, angle, cubeRotations[k]);
             cubeShader.setMat4("model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
